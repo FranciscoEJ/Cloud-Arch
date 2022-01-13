@@ -1,0 +1,61 @@
+version: '2.1'
+
+services:
+  mongo: 
+    image: mongo:latest 
+    container_name: "mongodb" 
+    ports: 
+        - 27017:27017 
+    command: mongod --smallfiles --logpath=/dev/null
+    restart: always
+
+  famous_news_service: 
+    image: famous_news_service 
+    build: ./FamousNewsService 
+    volumes: 
+      - '.:/usr/src/app' 
+    environment: 
+      - APP_SETTINGS=config.DevelopmentConfig 
+      - DATABASE_HOST=mongodb://mongo:27017/ 
+    depends_on: 
+      - mongo 
+    links: 
+      - mongo 
+    restart: always
+ 
+  politics_news_service: 
+    image: politics_news_service 
+    build: ./PoliticsNewsService 
+    volumes: 
+      - '.:/usr/src/app' 
+    environment: 
+      - APP_SETTINGS=config.DevelopmentConfig 
+      - DATABASE_HOST=mongodb://mongo:27017/ 
+    depends_on: 
+      - mongo 
+    links: 
+      - mongo 
+    restart: always
+ 
+  sports_news_service: 
+    image: sports_news_service 
+    build: ./SportsNewsService 
+    volumes: 
+      - '.:/usr/src/app' 
+    environment: 
+      - APP_SETTINGS=config.DevelopmentConfig 
+      - DATABASE_HOST=mongodb://mongo:27017/ 
+    depends_on: 
+      - mongo 
+    links: 
+      - mongo 
+    restart: always
+
+  proxy:
+    container_name: loadbalancer
+    build: ./nginx
+    ports:
+      - "81:80"
+    links:
+      - famous_news_service
+    restart: always
